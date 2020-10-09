@@ -11,24 +11,51 @@ const _players = [];
 
 const _parsed = [];
 
-const assignPlayer = (authortag, ig_name, str) => {
+const getPlayerDataFromLog = (rowstr) => {
     let player = {
-        discord_name: authortag,
+        discord_name: '',
         game_name: '',
         id: '',
         current_stack: 0
     };
-    //Function called when player joined the game in log
+    //called when player joins game
     let id_re = new RegExp(/@(.*)"/);
     let name_re = new RegExp(/"(.*)@/);
-    let id = str.match(id_re)[1];
-    let name = str.match(name_re)[1];
+    let id = rowstr.match(id_re)[1];
+    let name = rowstr.match(name_re)[1];
     player.game_name = name;
     player.id = id;
-    if (!_players.includes(player)) {
+    const exists = _players.find(e => (e.game_name === name));
+    if (exists === undefined) {
         _players.push(player);
+        console.log(`ADD PLAYER ${player.game_name}\n`);
     }
-    console.log(player);
+}
+const assignPlayer = (authortag, ig_name) => {
+    let found = undefined;
+    for (const x of _players) {
+        if (contains(x.game_name, ig_name)) {
+            found = x;
+        }
+    }
+    if (found !== undefined) {
+        const idx = _players.indexOf(found);
+        let updated = {
+            discord_name: authortag,
+            game_name: found.game_name,
+            id: found.id,
+            current_stack: found.current_stack
+        }
+        let i = 0;
+        for (i; i < _players.length; i++) {
+            if (i === idx) {
+                _players[i] = updated;
+                console.log(`UPDATED ${ig_name.toUpperCase()} AT INDEX: ${idx}`)
+            }
+        }
+    } else {
+        console.error(`Could not find player: ${ig_name}`)
+    }
 }
 
 client.on('ready', () => {
@@ -40,7 +67,9 @@ client.on('message', msg => {
         let reply = '\n';
         if (_players.length != 0) {
             for (const x of _players) {
-                reply += `@${x.discord_name.match(/(.*)#/)[1]} is ${x.game_name} in the game. (${x.id}) \n`;
+                let replyName = 'unassigned';
+                if (x.discord_name !== null) {replyName = x.discord_name};
+                reply += `@${replyName} is ${x.game_name} in the game. ${x.id}\n`;
             }
         } else {
             reply += 'No log has been parsed yet\n';
@@ -49,7 +78,7 @@ client.on('message', msg => {
     }
     if (msg.content.startsWith('!assignMeTo')) {
         let args = msg.content.slice('!assignMeTo'.length).trim().split(' ');
-        assignPlayer(msg.author.tag,args[0],)
+        assignPlayer(msg.author.tag,args[0])
     }
     if (msg.content === '!parselog') {
         if (msg.attachments.size > 0) {
@@ -68,7 +97,9 @@ client.on('message', msg => {
                                 let row = data[i].toString();
                                 reply += row + '\n';
                                 _parsed.push(row);
-                                assignPlayer('','',row);
+                                if (contains(row,`joined the game`)) {
+                                    getPlayerDataFromLog(row);
+                                }
                             }
                             if (_parsed.length === data.length) {
                                 msg.reply(reply.slice(0,1900));
