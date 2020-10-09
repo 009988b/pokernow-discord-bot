@@ -6,9 +6,9 @@ const client = new discord.Client();
 const contains = require('string-contains');
 
 require('dotenv').config();
-
+//contains json playerdata after !viewplayers
 const _players = [];
-
+//contains entire array of [log rows, hand no.] after !parselog
 const _parsed = [];
 
 const getPlayerDataFromLog = (rowstr) => {
@@ -68,8 +68,8 @@ client.on('message', msg => {
         if (_players.length != 0) {
             for (const x of _players) {
                 let replyName = 'unassigned';
-                if (x.discord_name !== null) {replyName = x.discord_name};
-                reply += `@${replyName} is ${x.game_name} in the game. ${x.id}\n`;
+                if (x.discord_name !== '') {replyName = x.discord_name};
+                reply += `@${replyName} is ${x.game_name} : ${x.id}\n`;
             }
         } else {
             reply += 'No log has been parsed yet\n';
@@ -92,13 +92,19 @@ client.on('message', msg => {
                     res.on('end', () => {
                         csv.parse(raw.toString(), {headers: false, relax_column_count: true}, (err, data) => {
                             let reply = '\n';
+                            let hand = 0;
                             let i;
                             for (i = data.length-1; i >= 0; i--) {
                                 let row = data[i].toString();
-                                reply += row + '\n';
-                                _parsed.push(row);
+                                _parsed.push([row,hand]);
                                 if (contains(row,`joined the game`)) {
                                     getPlayerDataFromLog(row);
+                                }
+                                if (contains(row, `starting hand`)) {
+                                    hand++;
+                                }
+                                if (contains(row, `Player stacks`)) {
+                                    reply += `hand ${hand} : ${row}\n`;
                                 }
                             }
                             if (_parsed.length === data.length) {
