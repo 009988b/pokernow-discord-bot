@@ -4,7 +4,9 @@ const csv = require('csv');
 const https = require('https');
 const client = new discord.Client();
 
-const parsed_data = [];
+require('dotenv').config();
+
+const _parsed = [];
 
 client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);
@@ -29,10 +31,10 @@ client.on('message', msg => {
                                 //Do stuff here
                                 let row = data[i];
                                 reply += row[0] + '\n';
-                                parsed_data.push(row[0]);
+                                _parsed.push(row[0]);
                                 console.log(row[0]);
                             }
-                            if (parsed_data.length === data.length) {
+                            if (_parsed.length === data.length) {
                                 msg.reply(reply.slice(0,1900));
                             }
                         })
@@ -43,4 +45,4 @@ client.on('message', msg => {
     }
 });
 
-client.login('NzYzOTE5NTYxMDUyMzg5Mzc3.X3-tiA.pPRNqzykIn1IJMY0QPQlJy42TG4');
+client.login(process.env.LOGIN_TOKEN);
