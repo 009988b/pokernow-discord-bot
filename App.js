@@ -28,7 +28,6 @@ client.on('message', msg => {
                             let count = 0;
                             let i;
                             for (i = data.length-1; i >= 0; i--) {
-                                //Do stuff here
                                 let row = data[i];
                                 reply += row[0] + '\n';
                                 _parsed.push(row[0]);
