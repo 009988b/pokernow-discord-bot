@@ -165,7 +165,6 @@ client.on('message', msg => {
         let reply = ``;
         for (const row of _parsed) {
             if (row[1] === hand) {
-                if (contains(row[0], `Player stacks`))
                 reply += row[0] + '\n';
             }
         }
