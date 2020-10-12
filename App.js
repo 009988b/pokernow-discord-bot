@@ -13,15 +13,6 @@ const _parsed = [];
 
 const totalHands = [-1];
 
-const initState = (row,hand,startBal) => {
-    if (contains(row,`joined the game`)) {
-        getPlayerData(row);
-    }
-    if (contains(row, `Player stacks`)) {
-        updatePlayerChips(row,hand,startBal)
-    }
-}
-
 const updatePlayerChips = (row, hand, startBal) => {
     let re = new RegExp(/\d+.\d+/g);
     let results = row.match(re);
@@ -68,7 +59,12 @@ const parseLog = (msg, startBal) => {
                             hand++;
                             totalHands[0]++;
                         }
-                        initState(row,hand,startBal);
+                        if (contains(row,`joined the game`)) {
+                            getPlayerData(row);
+                        }
+                        if (contains(row, `Player stacks`)) {
+                            updatePlayerChips(row,hand,startBal)
+                        }
                     }
                     if (_parsed.length === data.length) {
                         msg.reply(`Successfully loaded data from \.csv\nParsed size: ${_parsed.length}\nHands played: ${totalHands[0]}`)
